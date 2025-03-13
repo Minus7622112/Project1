@@ -1,0 +1,67 @@
+-- ==========================================
+-- Table: application_statuses
+-- ==========================================
+CREATE TABLE application_statuses (
+    application_status_id SERIAL PRIMARY KEY,
+    application_status VARCHAR(10) NOT NULL UNIQUE
+);
+-- ==========================================
+-- Table: loan_types
+-- ==========================================
+CREATE TABLE loan_types (
+    loan_type_id SERIAL PRIMARY KEY,
+    loan_type VARCHAR(10) NOT NULL UNIQUE
+);
+-- ==========================================
+-- Table: account_types
+-- ==========================================
+CREATE TABLE account_types (
+    account_type_id SERIAL PRIMARY KEY,
+    account_type VARCHAR(10) NOT NULL UNIQUE
+);
+ 
+-- ==========================================
+-- Table: accounts
+-- ==========================================
+CREATE TABLE accounts (
+    account_id SERIAL PRIMARY KEY,
+    email VARCHAR(26) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,  -- Hashed password
+    account_type_id INT NOT NULL,
+    CONSTRAINT fk_account_type FOREIGN KEY (account_type_id) REFERENCES account_types(account_type_id)
+);
+ 
+ 
+-- ==========================================
+-- Table: user_profiles
+-- ==========================================
+CREATE TABLE user_profiles (
+    user_profile_id SERIAL PRIMARY KEY,
+    account_id INT NOT NULL UNIQUE,  -- One-to-one relationship with accounts
+    first_name VARCHAR(20) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
+    phone_number VARCHAR(11) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    credit_score INT NOT NULL CHECK (credit_score BETWEEN 300 AND 850),
+    CONSTRAINT fk_user_account FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+);
+ 
+ 
+ 
+-- ==========================================
+-- Table: loan_applications
+-- ==========================================
+CREATE TABLE loan_applications (
+    loan_application_id SERIAL PRIMARY KEY,
+    loan_type_id INT NOT NULL,
+    principal_balance MONEY NOT NULL,
+    term_length INT NOT NULL CHECK (term_length > 0),  -- Term in months or years
+    interest FLOAT8 NOT NULL CHECK (interest >= 0),
+    total_balance MONEY NOT NULL CHECK (total_balance >= principal_balance),
+    application_status_id INT NOT NULL,
+    user_profile_id INT NOT NULL,
+    application_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    CONSTRAINT fk_loan_type FOREIGN KEY (loan_type_id) REFERENCES loan_types(loan_type_id),
+    CONSTRAINT fk_application_status FOREIGN KEY (application_status_id) REFERENCES application_statuses(application_status_id),
+    CONSTRAINT fk_borrower FOREIGN KEY (user_profile_id) REFERENCES user_profiles(user_profile_id)
+);
